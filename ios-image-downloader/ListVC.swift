@@ -78,11 +78,22 @@ class Cell: UITableViewCell {
     
     @IBOutlet weak var imgView: UIImageView!
 
+    var task: URLSessionDataTask!
+
     var item: String! {
         didSet {
-            NetworkManager.shared.fetchImage(path: item) { (data) in
-                self.imgView.image = data
-            }
+            imgView.image = nil
+            if task != nil {task.cancel()}
+            guard let url = URL(string: "https://random.dog/" + item) else {return}
+
+            task = URLSession.shared.dataTask(with: url, completionHandler: { (data, _, _) in
+                guard let data = data else {return}
+                DispatchQueue.main.async {
+                    self.imgView.image = UIImage(data: data)
+                }
+            })
+
+            task.resume()
         }
     }
 }
