@@ -74,6 +74,8 @@ class NetworkManager {
 }
 
 // MARK: - TableViewCell
+var imageCache = NSCache<AnyObject, AnyObject>()
+
 class Cell: UITableViewCell {
     
     @IBOutlet weak var imgView: UIImageView!
@@ -86,10 +88,16 @@ class Cell: UITableViewCell {
             if task != nil {task.cancel()}
             guard let url = URL(string: "https://random.dog/" + item) else {return}
 
+            if let imageFromCache = imageCache.object(forKey: url.absoluteString as AnyObject) as? UIImage {
+                imgView.image = imageFromCache
+                return
+            }
+
             task = URLSession.shared.dataTask(with: url, completionHandler: { (data, _, _) in
-                guard let data = data else {return}
+                guard let data = data, let newImage = UIImage(data: data) else {return}
+                imageCache.setObject(newImage, forKey: url.absoluteString as AnyObject)
                 DispatchQueue.main.async {
-                    self.imgView.image = UIImage(data: data)
+                    self.imgView.image = newImage
                 }
             })
 
