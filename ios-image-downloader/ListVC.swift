@@ -22,9 +22,8 @@ class ListVC: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell()
-        let item = data[indexPath.row]
-        cell.textLabel?.text = item
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell") as! Cell
+        cell.item = data[indexPath.row]
         return cell
     }
 
@@ -59,5 +58,31 @@ class NetworkManager {
                 print("Error", error.localizedDescription)
             }
         }.resume()
+    }
+
+    func fetchImage(path: String, completion: @escaping (UIImage?) -> ()) {
+        guard let url = URL(string: BASE_URL + "/" + path) else {return}
+
+        URLSession.shared.dataTask(with: url) { (data, _, _) in
+            guard let data = data else {return}
+            let image = UIImage(data: data)
+            DispatchQueue.main.async {
+                completion(image)
+            }
+        }.resume()
+    }
+}
+
+// MARK: - TableViewCell
+class Cell: UITableViewCell {
+    
+    @IBOutlet weak var imgView: UIImageView!
+
+    var item: String! {
+        didSet {
+            NetworkManager.shared.fetchImage(path: item) { (data) in
+                self.imgView.image = data
+            }
+        }
     }
 }
