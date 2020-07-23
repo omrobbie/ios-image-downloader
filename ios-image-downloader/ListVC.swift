@@ -51,8 +51,9 @@ class NetworkManager {
             guard let data = data else {return}
             do {
                 let decodeData = try JSONDecoder().decode([String].self, from: data)
+                let filterData = decodeData.filter {$0.contains(".jpg")}
                 DispatchQueue.main.async {
-                    completion(decodeData)
+                    completion(filterData)
                 }
             } catch {
                 print("Error", error.localizedDescription)
